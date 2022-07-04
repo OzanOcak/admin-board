@@ -10,7 +10,8 @@ import {
   serverTimestamp,
   setDoc,
 } from "firebase/firestore";
-import { db } from "../../firebase";
+import { auth, db } from "../../firebase";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 
 const New = ({ inputs, title }) => {
   const [file, setFile] = useState("");
@@ -27,18 +28,19 @@ const New = ({ inputs, title }) => {
 
   const handleAdd = async (e) => {
     e.preventDefault();
-    await setDoc(doc(db, "cities", "LA"), {
-      name: "Los Angeles",
-      state: "CA",
-      country: "USA",
-    });
-    const res = await addDoc(collection(db, "canada_cities"), {
-      name: "Calgary",
-      state: "AB",
-      country: "Canada",
-      timeStamp: serverTimestamp(),
-    });
-    console.log(res.id);
+    try {
+      const res = await createUserWithEmailAndPassword(
+        auth,
+        data.email,
+        data.password
+      );
+      await setDoc(doc(db, "users", res.user.uid), {
+        ...data,
+        timeStamp: serverTimestamp(),
+      });
+    } catch (err) {
+      console.log(err);
+    }
   };
   return (
     <div className="new">
